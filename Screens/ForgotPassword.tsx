@@ -14,33 +14,33 @@ import {
   Alert,
 } from 'react-native';
 
-const Otp = ({navigation, route}: any) => {
-  const email = route?.params?.email || 'your email';
-  const [otp, setOtp] = useState('');
-  const [errors, setErrors] = useState<{otp?: string}>({});
+const ForgotPassword = ({navigation}: any) => {
+  const [email, setEmail] = useState('');
+  const [errors, setErrors] = useState<{email?: string}>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
-    const newErrors: {otp?: string} = {};
+    const newErrors: {email?: string} = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!otp.trim()) {
-      newErrors.otp = 'Code is required';
-    } else if (otp.trim().length < 4) {
-      newErrors.otp = 'Enter 4-digit code';
+    if (!email.trim()) {
+      newErrors.email = 'Email address is required';
+    } else if (!emailRegex.test(email.trim())) {
+      newErrors.email = 'Please enter a valid email address';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleOtpChange = (text: string) => {
-    setOtp(text);
-    if (errors.otp) {
-      setErrors(prev => ({...prev, otp: undefined}));
+  const handleEmailChange = (text: string) => {
+    setEmail(text);
+    if (errors.email) {
+      setErrors(prev => ({...prev, email: undefined}));
     }
   };
 
-  const handleVerify = () => {
+  const handleResetPassword = () => {
     if (!validateForm()) {
       return;
     }
@@ -48,12 +48,20 @@ const Otp = ({navigation, route}: any) => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      Alert.alert('Success', 'Verification successful!', [
-        {
-          text: 'Go to Login',
-          onPress: () => navigation.navigate('Login'),
-        },
-      ]);
+      Alert.alert(
+        'Code Sent',
+        'A password reset verification code has been sent to your email.',
+        [
+          {
+            text: 'Continue to OTP',
+            onPress: () => {
+              if (navigation?.navigate) {
+                navigation.navigate('Otp', {email});
+              }
+            },
+          },
+        ],
+      );
     }, 1000);
   };
 
@@ -87,55 +95,55 @@ const Otp = ({navigation, route}: any) => {
             </View>
 
             {/* Title & Subtitle */}
-            <Text style={styles.title}>OTP Verification</Text>
+            <Text style={styles.title}>Forgot Password</Text>
             <Text style={styles.subTitle}>
-              Enter the 4-digit verification code sent to{' '}
-              <Text style={styles.boldEmail}>{email}</Text>
+              Enter your email address to receive a verification code.
             </Text>
 
-            {/* OTP Input Field */}
+            {/* Email Field */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>ENTER VERIFICATION CODE</Text>
+              <Text style={styles.label}>EMAIL ADDRESS</Text>
               <View style={styles.inputBox}>
+                <Text style={styles.inputIcon}>✉</Text>
                 <TextInput
-                  placeholder="• • • •"
+                  placeholder="name@company.com"
                   placeholderTextColor="#9CA3AF"
-                  style={styles.otpInput}
-                  value={otp}
-                  onChangeText={handleOtpChange}
-                  keyboardType="number-pad"
-                  maxLength={4}
-                  autoFocus
+                  style={styles.textInput}
+                  value={email}
+                  onChangeText={handleEmailChange}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
               </View>
-              {errors.otp ? (
-                <Text style={styles.errorTextDownRight}>{errors.otp}</Text>
+              {errors.email ? (
+                <Text style={styles.errorTextDownRight}>{errors.email}</Text>
               ) : null}
             </View>
 
-            {/* Verify Button */}
+            {/* Send Reset Code Button */}
             <TouchableOpacity
               style={[styles.button, isLoading && styles.buttonDisabled]}
               activeOpacity={0.88}
               disabled={isLoading}
-              onPress={handleVerify}>
+              onPress={handleResetPassword}>
               {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <View style={styles.buttonContent}>
-                  <Text style={styles.buttonText}>Verify & Proceed</Text>
+                  <Text style={styles.buttonText}>Send Reset Code</Text>
                   <Text style={styles.buttonArrow}>→</Text>
                 </View>
               )}
             </TouchableOpacity>
 
-            {/* Resend Code Link */}
+            {/* Footer Back to Login Link */}
             <View style={styles.footerContainer}>
-              <Text style={styles.footerText}>Didn't receive the code? </Text>
+              <Text style={styles.footerText}>Remember password? </Text>
               <TouchableOpacity
-                onPress={() => Alert.alert('Sent', 'A new verification code has been sent!')}
+                onPress={() => navigation.navigate('Login')}
                 activeOpacity={0.7}>
-                <Text style={styles.resendText}>Resend</Text>
+                <Text style={styles.loginText}>Login</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -230,11 +238,6 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     marginBottom: 24,
-    lineHeight: 19,
-  },
-  boldEmail: {
-    fontWeight: '600',
-    color: '#111827',
   },
   inputGroup: {
     marginBottom: 20,
@@ -248,22 +251,27 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   inputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
     width: '100%',
-    height: 52,
+    height: 48,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E5E7EB',
     borderRadius: 8,
     paddingHorizontal: 12,
-    justifyContent: 'center',
   },
-  otpInput: {
+  inputIcon: {
+    fontSize: 16,
+    color: '#9CA3AF',
+    marginRight: 10,
+  },
+  textInput: {
+    flex: 1,
     height: '100%',
-    fontSize: 20,
-    letterSpacing: 10,
+    fontSize: 14,
     color: '#111827',
-    textAlign: 'center',
-    fontWeight: '700',
+    padding: 0,
   },
   errorTextDownRight: {
     color: '#EF4444',
@@ -319,11 +327,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
   },
-  resendText: {
+  loginText: {
     fontSize: 13,
     fontWeight: '600',
     color: '#4F46E5',
   },
 });
 
-export default Otp;
+export default ForgotPassword;
