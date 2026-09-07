@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     letterSpacing: 10,
     color: '#111827',
-    textAlign: 'center',
+    textAlign: 'left',
     fontWeight: '700',
   },
   errorTextDownRight: {
