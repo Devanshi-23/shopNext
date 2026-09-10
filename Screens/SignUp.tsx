@@ -14,7 +14,13 @@ import {
   Alert,
 } from 'react-native';
 
+import {useAppDispatch, useAppSelector} from '../redux/hooks';
+import {setLoading, signUpSuccess} from '../redux/slices/authSlice';
+
 const SignUp = ({navigation}: any) => {
+  const dispatch = useAppDispatch();
+  const {isLoading} = useAppSelector((state) => state.auth);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -25,7 +31,6 @@ const SignUp = ({navigation}: any) => {
     password?: string;
     confirmPassword?: string;
   }>({});
-  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors: {
@@ -83,13 +88,13 @@ const SignUp = ({navigation}: any) => {
       return;
     }
 
-    setIsLoading(true);
+    dispatch(setLoading(true));
     setTimeout(() => {
-      setIsLoading(false);
+      dispatch(signUpSuccess({email: email.trim()}));
       Alert.alert('Verification Code Sent', 'Please enter the 4-digit code sent to your email.', [
         {
           text: 'Verify Code',
-          onPress: () => navigation.navigate('Otp', {email}),
+          onPress: () => navigation.navigate('Otp', {email: email.trim()}),
         },
       ]);
     }, 1000);
@@ -121,7 +126,7 @@ const SignUp = ({navigation}: any) => {
                 </View>
                 <Text style={styles.brandName}>ShopNest</Text>
               </View>
-              <View style={{width: 32}} />
+              <View style={styles.topBarSpacer} />
             </View>
 
             {/* Title & Subtitle */}
@@ -407,6 +412,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#4F46E5',
+  },
+  topBarSpacer: {
+    width: 32,
   },
 });
 

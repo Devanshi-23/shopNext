@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,18 +11,22 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 
-const Login = ({navigation}: any) => {
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { setLoading, loginSuccess } from '../redux/slices/authSlice';
+
+const Login = ({ navigation }: any) => {
+  const dispatch = useAppDispatch();
+  const { isLoading } = useAppSelector((state) => state.auth);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{email?: string; password?: string}>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const validateForm = () => {
-    const newErrors: {email?: string; password?: string} = {};
+    const newErrors: { email?: string; password?: string } = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!email.trim()) {
@@ -44,14 +48,14 @@ const Login = ({navigation}: any) => {
   const handleEmailChange = (text: string) => {
     setEmail(text);
     if (errors.email) {
-      setErrors(prev => ({...prev, email: undefined}));
+      setErrors(prev => ({ ...prev, email: undefined }));
     }
   };
 
   const handlePasswordChange = (text: string) => {
     setPassword(text);
     if (errors.password) {
-      setErrors(prev => ({...prev, password: undefined}));
+      setErrors(prev => ({ ...prev, password: undefined }));
     }
   };
 
@@ -60,11 +64,27 @@ const Login = ({navigation}: any) => {
       return;
     }
 
-    setIsLoading(true);
+    dispatch(setLoading(true));
     setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert('Success', 'Logged in successfully!');
-    }, 1000);
+      dispatch(
+        loginSuccess({
+          user: {
+            id: 'usr_' + Date.now(),
+            email: email.trim(),
+            name: email.trim().split('@')[0],
+          },
+          token: 'jwt_mock_token_' + Date.now(),
+        }),
+      );
+      if (navigation?.reset) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'MainTabs', params: { screen: 'Home' } }],
+        });
+      } else if (navigation?.navigate) {
+        navigation.navigate('MainTabs', { screen: 'Home' });
+      }
+    }, 800);
   };
 
   return (
@@ -128,7 +148,7 @@ const Login = ({navigation}: any) => {
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
                   style={styles.eyeToggle}
-                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                   <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
                 </TouchableOpacity>
               </View>

@@ -14,10 +14,15 @@ import {
   Alert,
 } from 'react-native';
 
+import {useAppDispatch, useAppSelector} from '../redux/hooks';
+import {setLoading, setPendingEmail} from '../redux/slices/authSlice';
+
 const ForgotPassword = ({navigation}: any) => {
+  const dispatch = useAppDispatch();
+  const {isLoading} = useAppSelector((state) => state.auth);
+
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<{email?: string}>({});
-  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors: {email?: string} = {};
@@ -45,9 +50,10 @@ const ForgotPassword = ({navigation}: any) => {
       return;
     }
 
-    setIsLoading(true);
+    dispatch(setLoading(true));
     setTimeout(() => {
-      setIsLoading(false);
+      dispatch(setPendingEmail(email.trim()));
+      dispatch(setLoading(false));
       Alert.alert(
         'Code Sent',
         'A password reset verification code has been sent to your email.',
@@ -56,7 +62,7 @@ const ForgotPassword = ({navigation}: any) => {
             text: 'Continue to OTP',
             onPress: () => {
               if (navigation?.navigate) {
-                navigation.navigate('Otp', {email});
+                navigation.navigate('Otp', {email: email.trim()});
               }
             },
           },
@@ -91,7 +97,7 @@ const ForgotPassword = ({navigation}: any) => {
                 </View>
                 <Text style={styles.brandName}>ShopNest</Text>
               </View>
-              <View style={{width: 32}} />
+              <View style={styles.topBarSpacer} />
             </View>
 
             {/* Title & Subtitle */}
@@ -331,6 +337,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#4F46E5',
+  },
+  topBarSpacer: {
+    width: 32,
   },
 });
 

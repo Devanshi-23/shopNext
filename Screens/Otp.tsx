@@ -14,11 +14,16 @@ import {
   Alert,
 } from 'react-native';
 
+import {useAppDispatch, useAppSelector} from '../redux/hooks';
+import {setLoading, otpVerifiedSuccess} from '../redux/slices/authSlice';
+
 const Otp = ({navigation, route}: any) => {
-  const email = route?.params?.email || 'your email';
+  const dispatch = useAppDispatch();
+  const {pendingEmail, isLoading} = useAppSelector((state) => state.auth);
+  const email = route?.params?.email || pendingEmail || 'your email';
+
   const [otp, setOtp] = useState('');
   const [errors, setErrors] = useState<{otp?: string}>({});
-  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors: {otp?: string} = {};
@@ -45,16 +50,25 @@ const Otp = ({navigation, route}: any) => {
       return;
     }
 
-    setIsLoading(true);
+    dispatch(setLoading(true));
     setTimeout(() => {
-      setIsLoading(false);
+      dispatch(otpVerifiedSuccess());
       Alert.alert('Success', 'Verification successful!', [
         {
-          text: 'Go to Login',
-          onPress: () => navigation.navigate('Login'),
+          text: 'Get Started',
+          onPress: () => {
+            if (navigation?.reset) {
+              navigation.reset({
+                index: 0,
+                routes: [{name: 'MainTabs', params: {screen: 'Home'}}],
+              });
+            } else {
+              navigation.navigate('MainTabs', {screen: 'Home'});
+            }
+          },
         },
       ]);
-    }, 1000);
+    }, 800);
   };
 
   return (
@@ -83,7 +97,7 @@ const Otp = ({navigation, route}: any) => {
                 </View>
                 <Text style={styles.brandName}>ShopNest</Text>
               </View>
-              <View style={{width: 32}} />
+              <View style={styles.topBarSpacer} />
             </View>
 
             {/* Title & Subtitle */}
@@ -323,6 +337,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#4F46E5',
+  },
+  topBarSpacer: {
+    width: 32,
   },
 });
 
