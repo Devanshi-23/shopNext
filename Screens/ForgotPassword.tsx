@@ -89,7 +89,7 @@ const ForgotPassword = ({navigation}: any) => {
                 <View style={styles.logoBadge}>
                   <Text style={styles.logoBadgeIcon}>⚡</Text>
                 </View>
-                <Text style={styles.brandName}>ShopFlow</Text>
+                <Text style={styles.brandName}>ShopNest</Text>
               </View>
               <View style={{width: 32}} />
             </View>
