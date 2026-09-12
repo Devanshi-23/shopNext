@@ -1,4 +1,5 @@
 import React from 'react';
+import{StatusBar} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {Provider} from 'react-redux';
@@ -14,6 +15,8 @@ const Stack = createNativeStackNavigator();
 
 function App() {
   return (
+    <>
+    <StatusBar hidden={true} />
     <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator
@@ -27,6 +30,7 @@ function App() {
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
+    </>
   );
 }
 
