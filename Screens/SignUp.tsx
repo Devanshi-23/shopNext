@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,16 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  ToastAndroid,
 } from 'react-native';
 
-import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {setLoading, signUpSuccess} from '../redux/slices/authSlice';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { setLoading, signUpSuccess } from '../redux/slices/authSlice';
+import { registerUser } from '../services/authService';
 
-const SignUp = ({navigation}: any) => {
+const SignUp = ({ navigation }: any) => {
   const dispatch = useAppDispatch();
-  const {isLoading} = useAppSelector((state) => state.auth);
+  const { isLoading } = useAppSelector((state) => state.auth);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,6 +33,14 @@ const SignUp = ({navigation}: any) => {
     password?: string;
     confirmPassword?: string;
   }>({});
+
+  const showToast = (message: string) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      Alert.alert('', message);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: {
@@ -65,39 +75,63 @@ const SignUp = ({navigation}: any) => {
   const handleEmailChange = (text: string) => {
     setEmail(text);
     if (errors.email) {
-      setErrors(prev => ({...prev, email: undefined}));
+      setErrors(prev => ({ ...prev, email: undefined }));
     }
   };
 
   const handlePasswordChange = (text: string) => {
     setPassword(text);
     if (errors.password) {
-      setErrors(prev => ({...prev, password: undefined}));
+      setErrors(prev => ({ ...prev, password: undefined }));
     }
   };
 
   const handleConfirmPasswordChange = (text: string) => {
     setConfirmPassword(text);
     if (errors.confirmPassword) {
-      setErrors(prev => ({...prev, confirmPassword: undefined}));
+      setErrors(prev => ({ ...prev, confirmPassword: undefined }));
     }
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
+    // 1. Validate form fields
     if (!validateForm()) {
       return;
     }
 
-    dispatch(setLoading(true));
-    setTimeout(() => {
-      dispatch(signUpSuccess({email: email.trim()}));
-      Alert.alert('Verification Code Sent', 'Please enter the 4-digit code sent to your email.', [
-        {
-          text: 'Verify Code',
-          onPress: () => navigation.navigate('Otp', {email: email.trim()}),
-        },
-      ]);
-    }, 1000);
+    const payload = {
+      email: email.trim(),
+      password,
+    };
+
+    console.log('--- Register API Request ---', payload);
+
+    try {
+      // 2. Start loading
+      dispatch(setLoading(true));
+
+      // 3. Call Register API
+      const response = await registerUser(payload);
+      console.log('--- Register API Response ---', response);
+
+      // 4. On Success: Save state, show toast & navigate to OTP screen
+      if (response.success) {
+        dispatch(signUpSuccess({ email: email.trim() }));
+        showToast(response.message || 'User registered successfully');
+        navigation.navigate('Otp', { email: email.trim() });
+      }
+    } catch (error: any) {
+      console.error('--- Register API Error ---', error?.response?.data || error?.message || error);
+
+      // 5. On Error: Show toast error message
+      const errorMessage =
+        error?.response?.data?.message ||
+        'Registration failed. Please check your connection and try again.';
+      showToast(errorMessage);
+    } finally {
+      // 6. Stop loading
+      dispatch(setLoading(false));
+    }
   };
 
   return (
@@ -117,7 +151,7 @@ const SignUp = ({navigation}: any) => {
                 style={styles.backButton}
                 onPress={() => navigation.goBack()}
                 activeOpacity={0.7}
-                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <Text style={styles.backButtonIcon}>←</Text>
               </TouchableOpacity>
               <View style={styles.brandRow}>
@@ -173,7 +207,7 @@ const SignUp = ({navigation}: any) => {
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
                   style={styles.eyeToggle}
-                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                   <Text style={styles.eyeIcon}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
                 </TouchableOpacity>
               </View>
@@ -199,7 +233,7 @@ const SignUp = ({navigation}: any) => {
                 <TouchableOpacity
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                   style={styles.eyeToggle}
-                  hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                   <Text style={styles.eyeIcon}>{showConfirmPassword ? '👁️' : '👁️‍🗨️'}</Text>
                 </TouchableOpacity>
               </View>

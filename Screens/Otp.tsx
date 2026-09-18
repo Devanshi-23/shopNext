@@ -12,18 +12,28 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  ToastAndroid,
 } from 'react-native';
 
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {setLoading, otpVerifiedSuccess} from '../redux/slices/authSlice';
+import {verifyOTP, sendOTP} from '../services/authService';
 
 const Otp = ({navigation, route}: any) => {
   const dispatch = useAppDispatch();
   const {pendingEmail, isLoading} = useAppSelector((state) => state.auth);
-  const email = route?.params?.email || pendingEmail || 'your email';
+  const email = route?.params?.email || pendingEmail || '';
 
   const [otp, setOtp] = useState('');
   const [errors, setErrors] = useState<{otp?: string}>({});
+
+  const showToast = (message: string) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      Alert.alert('', message);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: {otp?: string} = {};
@@ -45,30 +55,86 @@ const Otp = ({navigation, route}: any) => {
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
+    // 1. Validate form fields
     if (!validateForm()) {
       return;
     }
 
-    dispatch(setLoading(true));
-    setTimeout(() => {
-      dispatch(otpVerifiedSuccess());
-      Alert.alert('Success', 'Verification successful!', [
-        {
-          text: 'Get Started',
-          onPress: () => {
-            if (navigation?.reset) {
-              navigation.reset({
-                index: 0,
-                routes: [{name: 'MainTabs', params: {screen: 'Home'}}],
-              });
-            } else {
-              navigation.navigate('MainTabs', {screen: 'Home'});
-            }
-          },
-        },
-      ]);
-    }, 800);
+    const payload = {
+      email: email.trim(),
+      otp: otp.trim(),
+    };
+
+    console.log('--- Verify OTP Request ---', payload);
+
+    try {
+      // 2. Start loading
+      dispatch(setLoading(true));
+
+      // 3. Call Verify OTP API
+      const response = await verifyOTP(payload);
+      console.log('--- Verify OTP Response ---', response);
+
+      // 4. On Success: Save resetToken to auth state, show toast & navigate
+      if (response.success) {
+        dispatch(otpVerifiedSuccess({resetToken: response.resetToken}));
+        showToast(response.message || 'OTP verified successfully');
+
+        if (navigation?.reset) {
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'MainTabs',
+                params: {
+                  screen: 'Home',
+                  resetToken: response.resetToken,
+                  email: email.trim(),
+                },
+              },
+            ],
+          });
+        } else {
+          navigation.navigate('MainTabs', {
+            screen: 'Home',
+            resetToken: response.resetToken,
+            email: email.trim(),
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error('--- Verify OTP Error ---', error?.response?.data || error?.message || error);
+
+      // 5. On Error: Show toast error message
+      const errorMessage =
+        error?.response?.data?.message ||
+        'Invalid or expired OTP. Please try again.';
+      showToast(errorMessage);
+    } finally {
+      // 6. Stop loading
+      dispatch(setLoading(false));
+    }
+  };
+
+  const handleResend = async () => {
+    if (!email.trim()) {
+      showToast('Email address is missing');
+      return;
+    }
+
+    try {
+      dispatch(setLoading(true));
+      const response = await sendOTP({email: email.trim()});
+      showToast(response.message || 'Verification code resent!');
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        'Failed to resend OTP. Please try again.';
+      showToast(errorMessage);
+    } finally {
+      dispatch(setLoading(false));
+    }
   };
 
   return (
@@ -104,7 +170,7 @@ const Otp = ({navigation, route}: any) => {
             <Text style={styles.title}>OTP Verification</Text>
             <Text style={styles.subTitle}>
               Enter the 4-digit verification code sent to{' '}
-              <Text style={styles.boldEmail}>{email}</Text>
+              <Text style={styles.boldEmail}>{email || 'your email'}</Text>
             </Text>
 
             {/* OTP Input Field */}
@@ -147,7 +213,7 @@ const Otp = ({navigation, route}: any) => {
             <View style={styles.footerContainer}>
               <Text style={styles.footerText}>Didn't receive the code? </Text>
               <TouchableOpacity
-                onPress={() => Alert.alert('Sent', 'A new verification code has been sent!')}
+                onPress={handleResend}
                 activeOpacity={0.7}>
                 <Text style={styles.resendText}>Resend</Text>
               </TouchableOpacity>
@@ -158,6 +224,7 @@ const Otp = ({navigation, route}: any) => {
     </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   safeArea: {

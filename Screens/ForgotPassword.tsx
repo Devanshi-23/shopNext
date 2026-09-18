@@ -12,10 +12,12 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  ToastAndroid,
 } from 'react-native';
 
 import {useAppDispatch, useAppSelector} from '../redux/hooks';
 import {setLoading, setPendingEmail} from '../redux/slices/authSlice';
+import {sendOTP} from '../services/authService';
 
 const ForgotPassword = ({navigation}: any) => {
   const dispatch = useAppDispatch();
@@ -23,6 +25,14 @@ const ForgotPassword = ({navigation}: any) => {
 
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<{email?: string}>({});
+
+  const showToast = (message: string) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      Alert.alert('', message);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: {email?: string} = {};
@@ -45,30 +55,44 @@ const ForgotPassword = ({navigation}: any) => {
     }
   };
 
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
+    // 1. Validate Form Inputs
     if (!validateForm()) {
       return;
     }
 
-    dispatch(setLoading(true));
-    setTimeout(() => {
-      dispatch(setPendingEmail(email.trim()));
+    const payload = {
+      email: email.trim(),
+    };
+
+    console.log('--- Send OTP Request ---', payload);
+
+    try {
+      // 2. Start Loading
+      dispatch(setLoading(true));
+
+      // 3. Call Send OTP API
+      const response = await sendOTP(payload);
+      console.log('--- Send OTP Response ---', response);
+
+      // 4. On Success: Save state, show toast & navigate to OTP screen
+      if (response.success) {
+        dispatch(setPendingEmail(email.trim()));
+        showToast(response.message || 'OTP sent successfully');
+        navigation.navigate('Otp', {email: email.trim()});
+      }
+    } catch (error: any) {
+      console.error('--- Send OTP Error ---', error?.response?.data || error?.message || error);
+
+      // 5. On Error: Show backend toast error message
+      const errorMessage =
+        error?.response?.data?.message ||
+        'Failed to send OTP. Please check your connection and try again.';
+      showToast(errorMessage);
+    } finally {
+      // 6. Stop Loading
       dispatch(setLoading(false));
-      Alert.alert(
-        'Code Sent',
-        'A password reset verification code has been sent to your email.',
-        [
-          {
-            text: 'Continue to OTP',
-            onPress: () => {
-              if (navigation?.navigate) {
-                navigation.navigate('Otp', {email: email.trim()});
-              }
-            },
-          },
-        ],
-      );
-    }, 1000);
+    }
   };
 
   return (

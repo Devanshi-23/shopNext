@@ -15,4 +15,12 @@ export const API_CONFIG = {
   },
 };
 
+export const ENDPOINTS = {
+  AUTH: {
+    REGISTER: '/api/register',
+    SEND_OTP: '/api/send-otp',
+    VERIFY_OTP: '/api/verify-otp',
+  },
+};
+
 export default BASE_URL;

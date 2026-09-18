@@ -11,6 +11,7 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   pendingEmail: string | null;
+  resetToken: string | null;
   isLoading: boolean;
   error: string | null;
   otpVerified: boolean;
@@ -21,6 +22,7 @@ const initialState: AuthState = {
   token: null,
   isAuthenticated: false,
   pendingEmail: null,
+  resetToken: null,
   isLoading: false,
   error: null,
   otpVerified: false,
@@ -59,8 +61,12 @@ export const authSlice = createSlice({
       state.error = null;
       state.otpVerified = false;
     },
-    otpVerifiedSuccess: (state) => {
+    otpVerifiedSuccess: (
+      state,
+      action: PayloadAction<{resetToken?: string}>,
+    ) => {
       state.otpVerified = true;
+      state.resetToken = action.payload?.resetToken || null;
       state.isLoading = false;
       state.error = null;
     },
@@ -69,6 +75,7 @@ export const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.pendingEmail = null;
+      state.resetToken = null;
       state.isLoading = false;
       state.error = null;
       state.otpVerified = false;
