@@ -12,38 +12,23 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
-  ToastAndroid,
 } from 'react-native';
 
-import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {setLoading, otpVerifiedSuccess} from '../redux/slices/authSlice';
-import {verifyOTP, sendOTP} from '../services/authService';
+import {verifyOTP, sendOTP, showToast} from '../api/backend';
 
 const Otp = ({navigation, route}: any) => {
-  const dispatch = useAppDispatch();
-  const {pendingEmail, isLoading} = useAppSelector((state) => state.auth);
-  const email = route?.params?.email || pendingEmail || '';
-
+  const email = route?.params?.email || '';
   const [otp, setOtp] = useState('');
   const [errors, setErrors] = useState<{otp?: string}>({});
-
-  const showToast = (message: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(message, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('', message);
-    }
-  };
+  const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors: {otp?: string} = {};
-
     if (!otp.trim()) {
       newErrors.otp = 'Code is required';
     } else if (otp.trim().length < 4) {
       newErrors.otp = 'Enter 4-digit code';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -56,64 +41,20 @@ const Otp = ({navigation, route}: any) => {
   };
 
   const handleVerify = async () => {
-    // 1. Validate form fields
     if (!validateForm()) {
       return;
     }
 
-    const payload = {
-      email: email.trim(),
-      otp: otp.trim(),
-    };
-
-    console.log('--- Verify OTP Request ---', payload);
-
+    setLoading(true);
     try {
-      // 2. Start loading
-      dispatch(setLoading(true));
-
-      // 3. Call Verify OTP API
-      const response = await verifyOTP(payload);
-      console.log('--- Verify OTP Response ---', response);
-
-      // 4. On Success: Save resetToken to auth state, show toast & navigate
-      if (response.success) {
-        dispatch(otpVerifiedSuccess({resetToken: response.resetToken}));
-        showToast(response.message || 'OTP verified successfully');
-
-        if (navigation?.reset) {
-          navigation.reset({
-            index: 0,
-            routes: [
-              {
-                name: 'MainTabs',
-                params: {
-                  screen: 'Home',
-                  resetToken: response.resetToken,
-                  email: email.trim(),
-                },
-              },
-            ],
-          });
-        } else {
-          navigation.navigate('MainTabs', {
-            screen: 'Home',
-            resetToken: response.resetToken,
-            email: email.trim(),
-          });
-        }
-      }
+      const res = await verifyOTP({email: email.trim(), otp: otp.trim()});
+      showToast(res.message || 'OTP verified successfully');
+      navigation.navigate('MainTabs');
     } catch (error: any) {
-      console.error('--- Verify OTP Error ---', error?.response?.data || error?.message || error);
-
-      // 5. On Error: Show toast error message
-      const errorMessage =
-        error?.response?.data?.message ||
-        'Invalid or expired OTP. Please try again.';
-      showToast(errorMessage);
+      const msg = error?.response?.data?.message || 'Invalid or expired OTP';
+      showToast(msg);
     } finally {
-      // 6. Stop loading
-      dispatch(setLoading(false));
+      setLoading(false);
     }
   };
 
@@ -124,16 +65,11 @@ const Otp = ({navigation, route}: any) => {
     }
 
     try {
-      dispatch(setLoading(true));
-      const response = await sendOTP({email: email.trim()});
-      showToast(response.message || 'Verification code resent!');
+      const res = await sendOTP({email: email.trim()});
+      showToast(res.message || 'New OTP sent to your email');
     } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.message ||
-        'Failed to resend OTP. Please try again.';
-      showToast(errorMessage);
-    } finally {
-      dispatch(setLoading(false));
+      const msg = error?.response?.data?.message || 'Failed to resend OTP';
+      showToast(msg);
     }
   };
 
@@ -148,7 +84,6 @@ const Otp = ({navigation, route}: any) => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
-            {/* Top Bar */}
             <View style={styles.topBar}>
               <TouchableOpacity
                 style={styles.backButton}
@@ -166,14 +101,12 @@ const Otp = ({navigation, route}: any) => {
               <View style={styles.topBarSpacer} />
             </View>
 
-            {/* Title & Subtitle */}
             <Text style={styles.title}>OTP Verification</Text>
             <Text style={styles.subTitle}>
               Enter the 4-digit verification code sent to{' '}
               <Text style={styles.boldEmail}>{email || 'your email'}</Text>
             </Text>
 
-            {/* OTP Input Field */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>ENTER VERIFICATION CODE</Text>
               <View style={styles.inputBox}>
@@ -193,13 +126,12 @@ const Otp = ({navigation, route}: any) => {
               ) : null}
             </View>
 
-            {/* Verify Button */}
             <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
+              style={[styles.button, loading && styles.buttonDisabled]}
               activeOpacity={0.88}
-              disabled={isLoading}
+              disabled={loading}
               onPress={handleVerify}>
-              {isLoading ? (
+              {loading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <View style={styles.buttonContent}>
@@ -209,7 +141,6 @@ const Otp = ({navigation, route}: any) => {
               )}
             </TouchableOpacity>
 
-            {/* Resend Code Link */}
             <View style={styles.footerContainer}>
               <Text style={styles.footerText}>Didn't receive the code? </Text>
               <TouchableOpacity

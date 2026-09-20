@@ -13,17 +13,17 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { setLoading, loginSuccess } from '../redux/slices/authSlice';
+import { useAppDispatch } from '../redux/hooks';
+import { loginSuccess } from '../redux/slices/authSlice';
+import { loginUser, showToast } from '../api/backend';
 
 const Login = ({ navigation }: any) => {
   const dispatch = useAppDispatch();
-  const { isLoading } = useAppSelector((state) => state.auth);
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -59,23 +59,24 @@ const Login = ({ navigation }: any) => {
     }
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!validateForm()) {
       return;
     }
 
-    dispatch(setLoading(true));
-    setTimeout(() => {
+    setLoading(true);
+    try {
+      const res = await loginUser({ email: email.trim(), password });
+      
       dispatch(
         loginSuccess({
-          user: {
-            id: 'usr_' + Date.now(),
-            email: email.trim(),
-            name: email.trim().split('@')[0],
-          },
-          token: 'jwt_mock_token_' + Date.now(),
+          user: res.user || { email: email.trim() },
+          token: res.token || res.data?.token || '',
         }),
       );
+
+      showToast(res.message || 'Login successful');
+
       if (navigation?.reset) {
         navigation.reset({
           index: 0,
@@ -84,7 +85,12 @@ const Login = ({ navigation }: any) => {
       } else if (navigation?.navigate) {
         navigation.navigate('MainTabs', { screen: 'Home' });
       }
-    }, 800);
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || 'Login failed';
+      showToast(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -98,7 +104,6 @@ const Login = ({ navigation }: any) => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
-            {/* Brand Logo Header */}
             <View style={styles.brandRow}>
               <View style={styles.logoBadge}>
                 <Text style={styles.logoBadgeIcon}>⚡</Text>
@@ -106,11 +111,9 @@ const Login = ({ navigation }: any) => {
               <Text style={styles.brandName}>ShopNest</Text>
             </View>
 
-            {/* Title & Subtitle */}
             <Text style={styles.title}>Welcome Back</Text>
             <Text style={styles.subTitle}>Login to manage your products</Text>
 
-            {/* Email Field */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>EMAIL ADDRESS</Text>
               <View style={styles.inputBox}>
@@ -131,7 +134,6 @@ const Login = ({ navigation }: any) => {
               ) : null}
             </View>
 
-            {/* Password Field */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>PASSWORD</Text>
               <View style={styles.inputBox}>
@@ -157,7 +159,6 @@ const Login = ({ navigation }: any) => {
               ) : null}
             </View>
 
-            {/* Forgot Password on the right */}
             <TouchableOpacity
               style={styles.forgotPasswordContainer}
               onPress={() => navigation.navigate('ForgotPassword')}
@@ -165,13 +166,12 @@ const Login = ({ navigation }: any) => {
               <Text style={styles.forgotPassword}>Forgot Password?</Text>
             </TouchableOpacity>
 
-            {/* Login Button */}
             <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
+              style={[styles.button, loading && styles.buttonDisabled]}
               activeOpacity={0.88}
-              disabled={isLoading}
+              disabled={loading}
               onPress={handleLogin}>
-              {isLoading ? (
+              {loading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <View style={styles.buttonContent}>
@@ -181,7 +181,6 @@ const Login = ({ navigation }: any) => {
               )}
             </TouchableOpacity>
 
-            {/* Footer Signup Link */}
             <View style={styles.footerContainer}>
               <Text style={styles.footerText}>Don't have an account? </Text>
               <TouchableOpacity

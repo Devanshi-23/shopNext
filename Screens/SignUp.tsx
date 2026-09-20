@@ -12,17 +12,11 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
-  ToastAndroid,
 } from 'react-native';
 
-import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { setLoading, signUpSuccess } from '../redux/slices/authSlice';
-import { registerUser } from '../services/authService';
+import { registerUser, showToast } from '../api/backend';
 
 const SignUp = ({ navigation }: any) => {
-  const dispatch = useAppDispatch();
-  const { isLoading } = useAppSelector((state) => state.auth);
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -33,14 +27,7 @@ const SignUp = ({ navigation }: any) => {
     password?: string;
     confirmPassword?: string;
   }>({});
-
-  const showToast = (message: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(message, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('', message);
-    }
-  };
+  const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors: {
@@ -94,43 +81,20 @@ const SignUp = ({ navigation }: any) => {
   };
 
   const handleSignUp = async () => {
-    // 1. Validate form fields
     if (!validateForm()) {
       return;
     }
 
-    const payload = {
-      email: email.trim(),
-      password,
-    };
-
-    console.log('--- Register API Request ---', payload);
-
+    setLoading(true);
     try {
-      // 2. Start loading
-      dispatch(setLoading(true));
-
-      // 3. Call Register API
-      const response = await registerUser(payload);
-      console.log('--- Register API Response ---', response);
-
-      // 4. On Success: Save state, show toast & navigate to OTP screen
-      if (response.success) {
-        dispatch(signUpSuccess({ email: email.trim() }));
-        showToast(response.message || 'User registered successfully');
-        navigation.navigate('Otp', { email: email.trim() });
-      }
+      const res = await registerUser({ email: email.trim(), password });
+      showToast(res.message || 'User registered successfully');
+      navigation.navigate('Otp', { email: email.trim() });
     } catch (error: any) {
-      console.error('--- Register API Error ---', error?.response?.data || error?.message || error);
-
-      // 5. On Error: Show toast error message
-      const errorMessage =
-        error?.response?.data?.message ||
-        'Registration failed. Please check your connection and try again.';
-      showToast(errorMessage);
+      const msg = error?.response?.data?.message || 'Registration failed';
+      showToast(msg);
     } finally {
-      // 6. Stop loading
-      dispatch(setLoading(false));
+      setLoading(false);
     }
   };
 
@@ -145,7 +109,6 @@ const SignUp = ({ navigation }: any) => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
-            {/* Top Bar with Back Button and Brand */}
             <View style={styles.topBar}>
               <TouchableOpacity
                 style={styles.backButton}
@@ -163,13 +126,11 @@ const SignUp = ({ navigation }: any) => {
               <View style={styles.topBarSpacer} />
             </View>
 
-            {/* Title & Subtitle */}
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subTitle}>
               Create your account to manage your products.
             </Text>
 
-            {/* Email Field */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>EMAIL ADDRESS</Text>
               <View style={styles.inputBox}>
@@ -190,7 +151,6 @@ const SignUp = ({ navigation }: any) => {
               ) : null}
             </View>
 
-            {/* Password Field */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>PASSWORD</Text>
               <View style={styles.inputBox}>
@@ -216,7 +176,6 @@ const SignUp = ({ navigation }: any) => {
               ) : null}
             </View>
 
-            {/* Confirm Password Field */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>CONFIRM PASSWORD</Text>
               <View style={styles.inputBox}>
@@ -242,20 +201,18 @@ const SignUp = ({ navigation }: any) => {
               ) : null}
             </View>
 
-            {/* Create Account Button (Dark Navy) */}
             <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
+              style={[styles.button, loading && styles.buttonDisabled]}
               activeOpacity={0.88}
-              disabled={isLoading}
+              disabled={loading}
               onPress={handleSignUp}>
-              {isLoading ? (
+              {loading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <Text style={styles.buttonText}>Create Account</Text>
               )}
             </TouchableOpacity>
 
-            {/* Footer Login Link */}
             <View style={styles.footerContainer}>
               <Text style={styles.footerText}>Already have an account? </Text>
               <TouchableOpacity

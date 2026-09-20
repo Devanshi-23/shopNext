@@ -12,27 +12,14 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
-  ToastAndroid,
 } from 'react-native';
 
-import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {setLoading, setPendingEmail} from '../redux/slices/authSlice';
-import {sendOTP} from '../services/authService';
+import {sendOTP, showToast} from '../api/backend';
 
 const ForgotPassword = ({navigation}: any) => {
-  const dispatch = useAppDispatch();
-  const {isLoading} = useAppSelector((state) => state.auth);
-
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<{email?: string}>({});
-
-  const showToast = (message: string) => {
-    if (Platform.OS === 'android') {
-      ToastAndroid.show(message, ToastAndroid.SHORT);
-    } else {
-      Alert.alert('', message);
-    }
-  };
+  const [loading, setLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors: {email?: string} = {};
@@ -56,42 +43,20 @@ const ForgotPassword = ({navigation}: any) => {
   };
 
   const handleResetPassword = async () => {
-    // 1. Validate Form Inputs
     if (!validateForm()) {
       return;
     }
 
-    const payload = {
-      email: email.trim(),
-    };
-
-    console.log('--- Send OTP Request ---', payload);
-
+    setLoading(true);
     try {
-      // 2. Start Loading
-      dispatch(setLoading(true));
-
-      // 3. Call Send OTP API
-      const response = await sendOTP(payload);
-      console.log('--- Send OTP Response ---', response);
-
-      // 4. On Success: Save state, show toast & navigate to OTP screen
-      if (response.success) {
-        dispatch(setPendingEmail(email.trim()));
-        showToast(response.message || 'OTP sent successfully');
-        navigation.navigate('Otp', {email: email.trim()});
-      }
+      const res = await sendOTP({email: email.trim()});
+      showToast(res.message || 'OTP sent to your email');
+      navigation.navigate('Otp', {email: email.trim()});
     } catch (error: any) {
-      console.error('--- Send OTP Error ---', error?.response?.data || error?.message || error);
-
-      // 5. On Error: Show backend toast error message
-      const errorMessage =
-        error?.response?.data?.message ||
-        'Failed to send OTP. Please check your connection and try again.';
-      showToast(errorMessage);
+      const msg = error?.response?.data?.message || 'Failed to send OTP';
+      showToast(msg);
     } finally {
-      // 6. Stop Loading
-      dispatch(setLoading(false));
+      setLoading(false);
     }
   };
 
@@ -106,7 +71,6 @@ const ForgotPassword = ({navigation}: any) => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           <View style={styles.card}>
-            {/* Top Bar */}
             <View style={styles.topBar}>
               <TouchableOpacity
                 style={styles.backButton}
@@ -124,13 +88,11 @@ const ForgotPassword = ({navigation}: any) => {
               <View style={styles.topBarSpacer} />
             </View>
 
-            {/* Title & Subtitle */}
             <Text style={styles.title}>Forgot Password</Text>
             <Text style={styles.subTitle}>
               Enter your email address to receive a verification code.
             </Text>
 
-            {/* Email Field */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>EMAIL ADDRESS</Text>
               <View style={styles.inputBox}>
@@ -151,13 +113,12 @@ const ForgotPassword = ({navigation}: any) => {
               ) : null}
             </View>
 
-            {/* Send Reset Code Button */}
             <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
+              style={[styles.button, loading && styles.buttonDisabled]}
               activeOpacity={0.88}
-              disabled={isLoading}
+              disabled={loading}
               onPress={handleResetPassword}>
-              {isLoading ? (
+              {loading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <View style={styles.buttonContent}>
@@ -167,7 +128,6 @@ const ForgotPassword = ({navigation}: any) => {
               )}
             </TouchableOpacity>
 
-            {/* Footer Back to Login Link */}
             <View style={styles.footerContainer}>
               <Text style={styles.footerText}>Remember password? </Text>
               <TouchableOpacity
