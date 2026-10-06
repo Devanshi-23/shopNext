@@ -7,10 +7,31 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  Alert,
 } from 'react-native';
 import Svg, {Path, Circle, Rect} from 'react-native-svg';
 
 const ProfileScreen = () => {
+  const handleLogout = () => {
+  Alert.alert(
+    'Logout',
+    'Are you sure you want to log out of your account?',
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: () => {
+          // yahan logout ka actual logic baad mein add kar sakti ho
+          console.log('User logged out');
+        },
+      },
+    ],
+  );
+};
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -72,6 +93,7 @@ const ProfileScreen = () => {
 
         {/* EDIT PROFILE */}
         <TouchableOpacity style={styles.menuCard}>
+       
           <View style={styles.menuIcon}>
             <Svg width={21} height={21} viewBox="0 0 24 24">
               <Circle
@@ -137,7 +159,9 @@ const ProfileScreen = () => {
         </TouchableOpacity>
 
         {/* LOGOUT */}
-        <TouchableOpacity style={styles.menuCard}>
+        <TouchableOpacity style={styles.menuCard}
+        onPress={handleLogout}
+  activeOpacity={0.8}>
           <View style={styles.menuIcon}>
             <Svg width={21} height={21} viewBox="0 0 24 24">
               <Path
