@@ -5,11 +5,11 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  ScrollView,
+  FlatList,
   Image,
   TouchableOpacity,
 } from 'react-native';
-
+import Svg, {Path,Circle,Rect} from 'react-native-svg';
 const products = [
   {
     id: 'PRD-001',
@@ -32,14 +32,98 @@ const products = [
 ];
 
 const HomeScreen = ({navigation}: any) => {
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+  // ---------------- PRODUCT CARD ----------------
+  const renderProduct = ({item}: any) => {
+    return (
+      <View style={styles.productCard}>
+        {/* Product Image */}
+        <View style={styles.imageContainer}>
+          <Image
+            source={{uri: item.image}}
+            style={styles.productImage}
+            resizeMode="cover"
+          />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}>
+          <View style={styles.productId}>
+            <Text style={styles.productIdText}>ID: {item.id}</Text>
+          </View>
+        </View>
 
+        {/* Product Information */}
+        <View style={styles.productInfo}>
+          <View style={styles.productTitleRow}>
+            <Text style={styles.productName}>{item.name}</Text>
+
+            <Text style={styles.productPrice}>{item.price}</Text>
+          </View>
+
+          <Text style={styles.productDescription}>
+            {item.description}
+          </Text>
+
+          {/* Actions */}
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={styles.actionButton}>
+              <Svg width={18} height={18} viewBox="0 0 24 24">
+  <Path
+    d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"
+    fill="none"
+    stroke="#555555"
+    strokeWidth="1.6"
+  />
+  <Circle
+    cx="12"
+    cy="12"
+    r="2.5"
+    fill="none"
+    stroke="#555555"
+    strokeWidth="1.6"
+  />
+</Svg>
+              <Text style={styles.actionText}>View</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton}>
+              <Svg width={18} height={18} viewBox="0 0 24 24">
+  <Path
+    d="M4 20h4L19 9a2 2 0 0 0-4-4L4 16v4z"
+    fill="none"
+    stroke="#555555"
+    strokeWidth="1.7"
+    strokeLinejoin="round"
+  />
+  <Path
+    d="M13.5 6.5l4 4"
+    stroke="#555555"
+    strokeWidth="1.7"
+  />
+</Svg>
+              <Text style={styles.actionText}>Edit</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton}>
+              <Svg width={18} height={18} viewBox="0 0 24 24">
+  <Path
+    d="M5 7h14M10 11v6M14 11v6M9 7V4h6v3M7 7l1 13h8l1-13"
+    fill="none"
+    stroke="#C47B7B"
+    strokeWidth="1.7"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
+</Svg>
+              <Text style={styles.deleteText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  // ---------------- HEADER ----------------
+  const renderHeader = () => {
+    return (
+      <>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.brandContainer}>
@@ -51,7 +135,23 @@ const HomeScreen = ({navigation}: any) => {
           </View>
 
           <TouchableOpacity style={styles.notificationButton}>
-            <Text style={styles.notificationIcon}>🔔</Text>
+            <Svg width={27} height={27} viewBox="0 0 24 24">
+    <Path
+      d="M18 8C18 5.79 16.21 4 14 4C11.79 4 10 5.79 10 8C10 13 7 15 7 17H21C21 15 18 13 18 8Z"
+      fill="none"
+      stroke="#111827"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <Path
+      d="M13 20C13.55 20.61 14.45 20.61 15 20"
+      fill="none"
+      stroke="#111827"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </Svg>
             <View style={styles.notificationDot} />
           </TouchableOpacity>
         </View>
@@ -69,7 +169,27 @@ const HomeScreen = ({navigation}: any) => {
         <View style={styles.mainStatCard}>
           <View style={styles.statTopRow}>
             <View style={styles.statIconContainer}>
-              <Text style={styles.statIcon}>▣</Text>
+              <Svg width={23} height={23} viewBox="0 0 24 24">
+  <Rect
+    x="5"
+    y="5"
+    width="14"
+    height="14"
+    rx="2"
+    fill="none"
+    stroke="#167D70"
+    strokeWidth="1.8"
+  />
+  <Rect
+    x="9"
+    y="9"
+    width="6"
+    height="6"
+    fill="none"
+    stroke="#167D70"
+    strokeWidth="1.8"
+  />
+</Svg>
             </View>
 
             <View style={styles.totalBadge}>
@@ -84,24 +204,57 @@ const HomeScreen = ({navigation}: any) => {
 
         {/* Small Stats */}
         <View style={styles.smallStatsRow}>
-
           {/* Added Today */}
           <View style={styles.smallStatCard}>
             <View style={styles.smallIcon}>
-              <Text style={styles.plusIcon}>+</Text>
+              <Svg width={22} height={22} viewBox="0 0 24 24">
+  <Path
+    d="M12 5v14M5 12h14"
+    stroke="#6070A5"
+    strokeWidth="2"
+    strokeLinecap="round"
+  />
+</Svg>
             </View>
 
             <Text style={styles.smallNumber}>+5</Text>
+
             <Text style={styles.smallLabel}>Added Today</Text>
           </View>
 
           {/* Total Value */}
           <View style={styles.smallStatCard}>
             <View style={styles.smallIcon}>
-              <Text style={styles.emoji}>💵</Text>
+              <Svg width={24} height={24} viewBox="0 0 24 24">
+  <Rect
+    x="3"
+    y="6"
+    width="18"
+    height="12"
+    rx="2"
+    fill="none"
+    stroke="#167D70"
+    strokeWidth="1.8"
+  />
+  <Circle
+    cx="12"
+    cy="12"
+    r="3"
+    fill="none"
+    stroke="#167D70"
+    strokeWidth="1.6"
+  />
+  <Path
+    d="M6 9h1M17 15h1"
+    stroke="#167D70"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+  />
+</Svg>
             </View>
 
             <Text style={styles.smallNumber}>$45.2k</Text>
+
             <Text style={styles.smallLabel}>Total Value</Text>
           </View>
         </View>
@@ -114,70 +267,23 @@ const HomeScreen = ({navigation}: any) => {
             <Text style={styles.seeAll}>See All</Text>
           </TouchableOpacity>
         </View>
+      </>
+    );
+  };
 
-        {/* Product Cards */}
-        {products.map(product => (
-          <View style={styles.productCard} key={product.id}>
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
 
-            {/* Product Image */}
-            <View style={styles.imageContainer}>
-              <Image
-                source={{uri: product.image}}
-                style={styles.productImage}
-                resizeMode="cover"
-              />
-
-              <View style={styles.productId}>
-                <Text style={styles.productIdText}>
-                  ID: {product.id}
-                </Text>
-              </View>
-            </View>
-
-            {/* Product Information */}
-            <View style={styles.productInfo}>
-
-              <View style={styles.productTitleRow}>
-                <Text style={styles.productName}>
-                  {product.name}
-                </Text>
-
-                <Text style={styles.productPrice}>
-                  {product.price}
-                </Text>
-              </View>
-
-              <Text style={styles.productDescription}>
-                {product.description}
-              </Text>
-
-              {/* Actions */}
-              <View style={styles.actionRow}>
-
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.actionIcon}>👁️‍🗨️</Text>
-                  <Text style={styles.actionText}>View</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.actionIcon}>✎</Text>
-                  <Text style={styles.actionText}>Edit</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.actionButton}>
-                  <Text style={styles.deleteIcon}>▢</Text>
-                  <Text style={styles.deleteText}>Delete</Text>
-                </TouchableOpacity>
-
-              </View>
-            </View>
-          </View>
-        ))}
-
-        {/* Bottom spacing for floating button */}
-        <View style={{height: 100}} />
-
-      </ScrollView>
+      {/* ONE FLATLIST - EVERYTHING SCROLLS TOGETHER */}
+      <FlatList
+        data={products}
+        keyExtractor={item => item.id}
+        renderItem={renderProduct}
+        ListHeaderComponent={renderHeader}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      />
 
       {/* Floating Add Button */}
       <TouchableOpacity
@@ -197,10 +303,11 @@ const styles = StyleSheet.create({
   },
 
   scrollContent: {
-    paddingBottom: 30,
+    paddingBottom: 10,
   },
 
-  // Header
+  // ---------------- HEADER ----------------
+
   header: {
     height: 70,
     paddingHorizontal: 22,
@@ -246,10 +353,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  notificationIcon: {
-    fontSize: 27,
-    color: '#111827',
-  },
+ 
 
   notificationDot: {
     position: 'absolute',
@@ -260,11 +364,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#5B8DEF',
   },
+
   emoji: {
     fontSize: 20,
   },
 
-  // Greeting
+  // ---------------- GREETING ----------------
+
   greetingContainer: {
     paddingHorizontal: 22,
     paddingTop: 28,
@@ -285,7 +391,8 @@ const styles = StyleSheet.create({
     maxWidth: 330,
   },
 
-  // Main Stat
+  // ---------------- MAIN STAT ----------------
+
   mainStatCard: {
     marginHorizontal: 20,
     backgroundColor: '#F9FAFB',
@@ -342,7 +449,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Small stats
+  // ---------------- SMALL STATS ----------------
+
   smallStatsRow: {
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -375,12 +483,6 @@ const styles = StyleSheet.create({
     color: '#6070A5',
   },
 
-  moneyIcon: {
-    fontSize: 19,
-    fontWeight: '800',
-    color: '#168477',
-  },
-
   smallNumber: {
     fontSize: 20,
     fontWeight: '700',
@@ -394,7 +496,8 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  // Products
+  // ---------------- PRODUCTS ----------------
+
   productsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -416,7 +519,8 @@ const styles = StyleSheet.create({
     color: '#5578D6',
   },
 
-  // Product Card
+  // ---------------- PRODUCT CARD ----------------
+
   productCard: {
     marginHorizontal: 20,
     marginBottom: 20,
@@ -485,7 +589,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  // Actions
+  // ---------------- ACTIONS ----------------
+
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -525,7 +630,8 @@ const styles = StyleSheet.create({
     color: '#C47B7B',
   },
 
-  // Floating Button
+  // ---------------- FLOATING BUTTON ----------------
+
   floatingButton: {
     position: 'absolute',
     right: 22,
@@ -536,8 +642,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#4267B2',
     justifyContent: 'center',
     alignItems: 'center',
-
     elevation: 7,
+
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,

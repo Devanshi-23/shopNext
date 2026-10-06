@@ -4,73 +4,166 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
   TouchableOpacity,
-  Alert,
+  Image,
+  ScrollView,
 } from 'react-native';
-import {useAppDispatch, useAppSelector} from '../redux/hooks';
-import {logout} from '../redux/slices/authSlice';
+import Svg, {Path, Circle, Rect} from 'react-native-svg';
 
-const ProfileScreen = ({navigation}: any) => {
-  const dispatch = useAppDispatch();
-  const {user, pendingEmail} = useAppSelector((state) => state.auth);
-
-  const displayEmail = user?.email || pendingEmail || 'User';
-
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to log out of your account?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => {
-            dispatch(logout());
-            if (navigation?.reset) {
-              navigation.reset({
-                index: 0,
-                routes: [{name: 'Login'}],
-              });
-            } else {
-              navigation.navigate('Login');
-            }
-          },
-        },
-      ],
-    );
-  };
-
+const ProfileScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.content}>
-        {/* Profile Card */}
-        <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarEmoji}>👤</Text>
-          </View>
-          <Text style={styles.userName}>{displayEmail}</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Active Account</Text>
-          </View>
-        </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}>
 
-        {/* Actions / Logout Button */}
-        <View style={styles.actionContainer}>
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={handleLogout}
-            activeOpacity={0.85}>
-            <Text style={styles.logoutIcon}>🚪</Text>
-            <Text style={styles.logoutButtonText}>Log Out</Text>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Image
+              source={{
+                uri: 'https://randomuser.me/api/portraits/women/44.jpg',
+              }}
+              style={styles.headerProfile}
+            />
+
+            <Text style={styles.brandName}>ShopFlow</Text>
+          </View>
+
+          {/* Notification Bell */}
+          <TouchableOpacity style={styles.bellButton}>
+            <Svg width={22} height={22} viewBox="0 0 24 24">
+              <Path
+                d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"
+                fill="none"
+                stroke="#333333"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M10 21h4"
+                fill="none"
+                stroke="#333333"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+              />
+            </Svg>
           </TouchableOpacity>
         </View>
-      </View>
+
+        {/* PROFILE CARD */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileImageWrapper}>
+            <Image
+              source={{
+                uri: 'https://randomuser.me/api/portraits/men/32.jpg',
+              }}
+              style={styles.profileImage}
+            />
+          </View>
+
+          <Text style={styles.userName}>Alex Johnson</Text>
+
+          <Text style={styles.email}>alex@example.com</Text>
+        </View>
+
+        {/* MENU OPTIONS */}
+
+        {/* EDIT PROFILE */}
+        <TouchableOpacity style={styles.menuCard}>
+          <View style={styles.menuIcon}>
+            <Svg width={21} height={21} viewBox="0 0 24 24">
+              <Circle
+                cx="12"
+                cy="8"
+                r="3.2"
+                fill="none"
+                stroke="#5879A8"
+                strokeWidth="1.8"
+              />
+              <Path
+                d="M5.5 19c.7-3.2 2.9-5 6.5-5s5.8 1.8 6.5 5"
+                fill="none"
+                stroke="#5879A8"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </Svg>
+          </View>
+
+          <Text style={styles.menuText}>Edit Profile</Text>
+
+          <Text style={styles.arrow}>›</Text>
+        </TouchableOpacity>
+
+        {/* APP SETTINGS */}
+        <TouchableOpacity style={styles.menuCard}>
+          <View style={styles.menuIcon}>
+            <Svg width={21} height={21} viewBox="0 0 24 24">
+              <Circle
+                cx="12"
+                cy="12"
+                r="3"
+                fill="none"
+                stroke="#5879A8"
+                strokeWidth="1.8"
+              />
+
+              <Path
+                d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14.3 3h-4.6l-.3 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2l.3 2.6h4.6l.3-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"
+                fill="none"
+                stroke="#5879A8"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </View>
+
+          <Text style={styles.menuText}>App Settings</Text>
+
+          <Text style={styles.arrow}>›</Text>
+        </TouchableOpacity>
+
+        {/* HELP & SUPPORT */}
+        <TouchableOpacity style={styles.menuCard}>
+          <View style={styles.menuIcon}>
+            <Text style={styles.questionMark}>?</Text>
+          </View>
+
+          <Text style={styles.menuText}>Help & Support</Text>
+
+          <Text style={styles.arrow}>›</Text>
+        </TouchableOpacity>
+
+        {/* LOGOUT */}
+        <TouchableOpacity style={styles.menuCard}>
+          <View style={styles.menuIcon}>
+            <Svg width={21} height={21} viewBox="0 0 24 24">
+              <Path
+                d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5"
+                fill="none"
+                stroke="#5879A8"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+              <Path
+                d="M13 8l4 4-4 4M9 12h8"
+                fill="none"
+                stroke="#5879A8"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </View>
+
+          <Text style={styles.menuText}>Logout</Text>
+
+          <Text style={styles.arrow}>›</Text>
+        </TouchableOpacity>
+
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -78,90 +171,137 @@ const ProfileScreen = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F5F7FA',
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
+
+  scrollContent: {
+    paddingBottom: 30,
   },
-  profileCard: {
+
+  // HEADER
+  header: {
+    height: 65,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    shadowColor: '#0F172A',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginBottom: 24,
-  },
-  avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#EEF2FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: '#C7D2FE',
-  },
-  avatarEmoji: {
-    fontSize: 40,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  badge: {
-    backgroundColor: '#ECFDF5',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#059669',
-  },
-  actionContainer: {
-    width: '100%',
-  },
-  logoutButton: {
-    backgroundColor: '#FEE2E2',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 22,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8E8E8',
+  },
+
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  headerProfile: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 10,
+  },
+
+  brandName: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#11183D',
+  },
+
+  bellButton: {
+    width: 38,
+    height: 38,
     justifyContent: 'center',
-    height: 52,
-    borderRadius: 12,
+    alignItems: 'center',
+  },
+
+  // PROFILE CARD
+  profileCard: {
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginTop: 18,
+    borderRadius: 9,
+    height: 235,
+    alignItems: 'center',
+    justifyContent: 'center',
+
     borderWidth: 1,
-    borderColor: '#FECACA',
-    shadowColor: '#EF4444',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: '#E4E6EA',
   },
-  logoutIcon: {
-    fontSize: 18,
-    marginRight: 8,
+
+  profileImageWrapper: {
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    borderWidth: 3,
+    borderColor: '#E7EBEE',
+    padding: 3,
+    marginBottom: 14,
   },
-  logoutButtonText: {
-    fontSize: 15,
+
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 38,
+  },
+
+  userName: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#05052F',
+    marginBottom: 5,
+  },
+
+  email: {
+    fontSize: 13,
+    color: '#333333',
+  },
+
+  // MENU
+  menuCard: {
+    height: 64,
+    marginHorizontal: 20,
+    marginTop: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 7,
+
+    borderWidth: 1,
+    borderColor: '#E3E5E8',
+
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 25,
+  },
+
+  menuIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 20,
+    backgroundColor: '#DCE9FC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+
+  questionMark: {
+    fontSize: 17,
     fontWeight: '700',
-    color: '#DC2626',
+    color: '#5879A8',
+  },
+
+  menuText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#111111',
+    fontWeight: '500',
+  },
+
+  arrow: {
+    fontSize: 29,
+    color: '#B7C0CE',
+    fontWeight: '300',
+    marginTop: -3,
   },
 });
 
 export default ProfileScreen;
-
